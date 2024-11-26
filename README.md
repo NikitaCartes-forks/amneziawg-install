@@ -49,11 +49,17 @@ If you encounter an error during the installation of AWG from the repository, yo
 
 Follow these steps:
 
-1. Review Required Repositories
+1. Perform a clean installation:
+```bash
+./amneziawg-install.sh
+```
+Select option `4`: "Uninstall AmneziaWG"
+
+2. Review Required Repositories
 Check the following repositories:
 - [AmneziaWG Kernel Module](https://github.com/amnezia-vpn/amneziawg-linux-kernel-module)
 - [AmneziaWG Tools](https://github.com/amnezia-vpn/amneziawg-tools)
-2. Download Your Kernel Source Code
+3. Download Your Kernel Source Code
 a) Check your kernel version:
 ```bash
 uname -r
@@ -77,7 +83,7 @@ Usually, it will be located at:
 ```bash
 /usr/src/linux-source-<version>.tar.xz
 ```
-3. Build and Install the AmneziaWG Kernel Module and Tools
+4. Build and Install the AmneziaWG Kernel Module and Tools
 Execute the following steps:
 
 ### Notes
@@ -113,7 +119,7 @@ sudo make install
 # Return to the main directory
 cd ../../
 ```
-4. Retry Installation
+5. Retry Installation
 After completing the above steps, you can attempt to run the installation script again:
 ```bash
 ./amneziawg-install.sh
