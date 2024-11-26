@@ -254,42 +254,47 @@ function installAmneziaWG() {
 	# Run setup questions first
 	installQuestions
 
-	# Install AmneziaWG tools and module
-	if [[ ${OS} == 'ubuntu' ]]; then
-		if [[ -e /etc/apt/sources.list.d/ubuntu.sources ]]; then
-			if ! grep -q "deb-src" /etc/apt/sources.list.d/ubuntu.sources; then
-				cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/amneziawg.sources
-				sed -i 's/deb/deb-src/' /etc/apt/sources.list.d/amneziawg.sources
+	# If AWG and AWG-Quick are already installed, do not install them from the repository
+	if command -v awg &>/dev/null && command -v awg-quick &>/dev/null; then
+		echo "AmneziaWG tools are already installed (awg and awg-quick detected)."
+	else
+		# Install AmneziaWG tools and module
+		if [[ ${OS} == 'ubuntu' ]]; then
+			if [[ -e /etc/apt/sources.list.d/ubuntu.sources ]]; then
+				if ! grep -q "deb-src" /etc/apt/sources.list.d/ubuntu.sources; then
+					cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/amneziawg.sources
+					sed -i 's/deb/deb-src/' /etc/apt/sources.list.d/amneziawg.sources
+				fi
+			else
+				if ! grep -q "^deb-src" /etc/apt/sources.list; then
+					cp /etc/apt/sources.list /etc/apt/sources.list.d/amneziawg.sources.list
+					sed -i 's/^deb/deb-src/' /etc/apt/sources.list.d/amneziawg.sources.list
+				fi
 			fi
-		else
+			apt install -y software-properties-common
+			add-apt-repository -y ppa:amnezia/ppa
+			apt install -y amneziawg amneziawg-tools qrencode
+		elif [[ ${OS} == 'debian' ]]; then
 			if ! grep -q "^deb-src" /etc/apt/sources.list; then
 				cp /etc/apt/sources.list /etc/apt/sources.list.d/amneziawg.sources.list
 				sed -i 's/^deb/deb-src/' /etc/apt/sources.list.d/amneziawg.sources.list
 			fi
+			apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 57290828
+			echo "deb https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu focal main" >>/etc/apt/sources.list.d/amneziawg.sources.list
+			echo "deb-src https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu focal main" >>/etc/apt/sources.list.d/amneziawg.sources.list
+			apt update
+			apt install -y amneziawg amneziawg-tools qrencode iptables
+		elif [[ ${OS} == 'fedora' ]]; then
+			dnf config-manager --set-enabled crb
+			dnf install -y epel-release
+			dnf copr enable -y amneziavpn/amneziawg
+			dnf install -y amneziawg-dkms amneziawg-tools qrencode iptables
+		elif [[ ${OS} == 'centos' ]] || [[ ${OS} == 'almalinux' ]] || [[ ${OS} == 'rocky' ]]; then
+			dnf config-manager --set-enabled crb
+			dnf install -y epel-release
+			dnf copr enable -y amneziavpn/amneziawg
+			dnf install -y amneziawg-dkms amneziawg-tools qrencode iptables
 		fi
-		apt install -y software-properties-common
-		add-apt-repository -y ppa:amnezia/ppa
-		apt install -y amneziawg amneziawg-tools qrencode
-	elif [[ ${OS} == 'debian' ]]; then
-		if ! grep -q "^deb-src" /etc/apt/sources.list; then
-			cp /etc/apt/sources.list /etc/apt/sources.list.d/amneziawg.sources.list
-			sed -i 's/^deb/deb-src/' /etc/apt/sources.list.d/amneziawg.sources.list
-		fi
-		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 57290828
-		echo "deb https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu focal main" >>/etc/apt/sources.list.d/amneziawg.sources.list
-		echo "deb-src https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu focal main" >>/etc/apt/sources.list.d/amneziawg.sources.list
-		apt update
-		apt install -y amneziawg amneziawg-tools qrencode iptables
-	elif [[ ${OS} == 'fedora' ]]; then
-		dnf config-manager --set-enabled crb
-		dnf install -y epel-release
-		dnf copr enable -y amneziavpn/amneziawg
-		dnf install -y amneziawg-dkms amneziawg-tools qrencode iptables
-	elif [[ ${OS} == 'centos' ]] || [[ ${OS} == 'almalinux' ]] || [[ ${OS} == 'rocky' ]]; then
-		dnf config-manager --set-enabled crb
-		dnf install -y epel-release
-		dnf copr enable -y amneziavpn/amneziawg
-		dnf install -y amneziawg-dkms amneziawg-tools qrencode iptables
 	fi
 
 	SERVER_AWG_CONF="${AMNEZIAWG_DIR}/${SERVER_AWG_NIC}.conf"
